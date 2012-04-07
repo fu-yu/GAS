@@ -1,0 +1,43 @@
+/*
+ *
+ * http://www5d.biglobe.ne.jp/~pog/urlfetch_services/class_urlfetchapp.html
+ *
+ */
+
+var fields = {'in_reply_to_screen_name':true,'created_at':true,'text':true};
+var TWITTER_CONSCUMER_KEY="";
+var TWITTER_CONSCUMER_SECRET="";
+// Setup OAuthServiceConfig
+function tweet() {
+  var oAuthConfig = UrlFetchApp.addOAuthService("twitter");
+  oAuthConfig.setAccessTokenUrl("http://api.twitter.com/oauth/access_token");
+  oAuthConfig.setRequestTokenUrl("http://api.twitter.com/oauth/request_token");
+  oAuthConfig.setAuthorizationUrl("http://api.twitter.com/oauth/authorize");
+  oAuthConfig.setConsumerKey(TWITTER_CONSCUMER_KEY);
+  oAuthConfig.setConsumerSecret(TWITTER_CONSCUMER_SECRET);
+
+  // Setup optional parameters to point request at OAuthConfigService.  The "twitter"
+  // value matches the argument to "addOAuthService" above.
+  var options =
+    {
+      "oAuthServiceName" : "twitter",
+      "oAuthUseToken" : "always"
+    };
+
+  var result = UrlFetchApp.fetch("http://api.twitter.com/1/statuses/user_timeline.json", options);
+  var o  = Utilities.jsonParse(result.getContentText());
+  var doc = SpreadsheetApp.getActiveSpreadsheet();
+  var cell = doc.getRange('a1');
+  var index = 0;
+  for (var i in o) {
+    var row = o[i];
+    var col = 0;
+    for (var j in row) {
+      if (fields[j]) {
+        cell.offset(index, col).setValue(row[j]);
+        col++;
+      }
+    }
+    index++;
+  }
+}

@@ -1,0 +1,41 @@
+/*
+ *
+ * http://www5d.biglobe.ne.jp/~pog/urlfetch_services/class_urlfetchapp.html
+ *
+ */
+
+var fields = {'in_reply_to_screen_name':true,'created_at':true,'text':true};
+var TWITTER_CONSCUMER_KEY="";
+var TWITTER_CONSCUMER_SECRET="";
+// Setup OAuthServiceConfig
+
+function tweet(){
+  twitterInicialize();
+  twitterPost("GASからきました。");
+}
+
+function twitterInicialize() {
+  var oAuthConfig = UrlFetchApp.addOAuthService("twitter");
+  oAuthConfig.setAccessTokenUrl("http://api.twitter.com/oauth/access_token");
+  oAuthConfig.setRequestTokenUrl("http://api.twitter.com/oauth/request_token");
+  oAuthConfig.setAuthorizationUrl("http://api.twitter.com/oauth/authorize");
+  oAuthConfig.setConsumerKey(TWITTER_CONSCUMER_KEY);
+  oAuthConfig.setConsumerSecret(TWITTER_CONSCUMER_SECRET);
+
+}
+
+function twitterPost(text) {
+  // Setup optional parameters to point request at OAuthConfigService.  The "twitter"
+  // value matches the argument to "addOAuthService" above.
+  var options =
+  {
+    "oAuthServiceName" : "twitter",
+    "oAuthUseToken" : "always",
+    "method" : "POST"
+  };
+  var encodedTweet = encodeURIComponent(text);
+  var result = UrlFetchApp.fetch("http://api.twitter.com/1/statuses/update.json?status=" + encodedTweet, options);
+  var o  = Utilities.jsonParse(result.getContentText());
+  Logger.log(o);
+  Logger.log(result.getResponseCode());
+}
