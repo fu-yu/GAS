@@ -1,0 +1,76 @@
+/*
+ *
+ * ßhttps://dev.twitter.com/docs/using-search
+ *
+ */
+
+function searchKeyword() {
+  var response, jsonString, object, tweets = [],
+      ss, cell, firstId, row = 0, id, result, col, dd;
+
+  // Twitter Search APIのURL
+  var API_URL = "http://search.twitter.com/search.json?";
+  var MAX_PAGES = 5;
+  var MAX_TWEETS = 10000;
+
+  // 検索条件を指定
+  var query = "キーワード";
+
+  query = encodeURIComponent(query);
+
+  if (query != "") {
+
+    // ツイートを MAX_PAGES 分まとめて取得
+    for (var i = 0; i < MAX_PAGES; i++) {
+
+      response = UrlFetchApp.fetch(API_URL + "q=" + query + "&rpp=100&page=" + (i + 1));
+      if (!response) {
+        continue;
+      }
+
+      jsonString = response.getContentText();
+      object = Utilities.jsonParse(jsonString);
+
+      tweets = tweets.concat(object.results);
+    }
+
+    if (tweets.length === 0) {
+      return;
+    }
+
+    ss = SpreadsheetApp.getActiveSheet();
+    cell = ss.getRange("A2");
+    firstId = tweets[tweets.length - 1].id_str;
+
+    row = 0;
+
+    // 取得済みのツイートを上書きしないように開始行を設定する
+    for (var i = 0; i < MAX_TWEETS; i++) {
+
+      id = cell.offset(i, 0).getValue();
+
+      if(firstId == id || !id) {
+        break;
+      }
+      row++;
+    }
+
+    // スプレッドシートに展開
+    for (var i = tweets.length - 1; i > 0; i--) {
+
+      result = tweets[i];
+
+      col = 0;
+      dd = new Date(result.created_at);
+
+      cell.offset(row, col++).setValue(result.id_str);
+      cell.offset(row, col++).setValue(dd.toLocaleString());
+      cell.offset(row, col++).setValue(result.text);
+      cell.offset(row, col++).setValue('http://twitter.com/'
+                                              + result.from_user
+                                              + "/status/"
+                                              + result.id);
+      row++;
+    }
+  }
+}
