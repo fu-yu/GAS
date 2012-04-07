@@ -1,0 +1,157 @@
+
+function parseJson() {
+ 
+  var result,url,rss;
+  url="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/json";
+  
+  //Newsstand
+  var url_newsStand="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6021/json";
+  
+  //Entertainment
+  var url_Entertainment="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6016/json";
+  
+  //catalog
+  var url_catalog="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6022/json";
+  
+  //game
+  var url_game="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6014/json";
+  
+  //sports
+  var url_sports="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6004/json";
+  
+  //SNS
+  var url_SNS="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6005/json";
+  
+  //Navigation
+  var url_Navigation="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6010/json";
+  
+  //News
+  var url_News="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6009/json";
+
+  //Biz
+  var url_Biz="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6000/json";
+  
+    //Finance
+  var url_Finance="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6015/json";
+  
+    //Book
+  var url_Book="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6018/json";
+  
+    //healthcare
+  var url_healthcare="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6013/json";
+  
+  //Music
+  var url_Music="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6011/json";
+  
+  
+  //medical
+  var url_medical="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6020/json";
+  
+  //utility
+  var url_utility="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6002/json";
+  
+  //Lifestyle
+  var url_Lifestyle="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6012/json";
+  
+  //work
+  var url_work="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6007/json";
+  
+  //photo
+  var url_photo="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6008/json";
+  
+  //weather
+  var url_weather="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6001/json";
+  
+  //education
+  var url_education="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6017/json";
+  
+  //travel
+  var url_travel="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6003/json";
+  
+  //dictionary
+  var url_dictionary="http://itunes.apple.com/jp/rss/topfreeapplications/limit=400/genre=6006/json";
+  
+  var namespace_im = "http://itunes.apple.com/rss";
+  
+  var today = new Date();
+  var sheetTime = today.getFullYear() + "/" + (today.getMonth()+1) + "/" + today.getDate()+ " " + today.getTime();
+  var sa =SpreadsheetApp.create("iOS Ranking" +sheetTime);
+//  var sa =SpreadsheetApp.getActiveSpreadsheet();
+
+  var urlList =[url,url_newsStand,url_Entertainment,url_catalog,url_game,
+                url_sports,url_SNS,url_Navigation,url_News,url_Biz,
+               url_Finance,
+                url_Book,url_healthcare,url_Music,url_medical,
+               url_utility,url_Lifestyle,url_work,url_photo,url_weather,
+               url_education,url_travel,url_dictionary];
+//  writeDocument(sa, url);
+  var str ="";
+  var user = Session.getUser();
+     var mail = user.getEmail();
+  for (indexUrl in urlList){
+    writeDocument(sa, urlList[indexUrl]);
+      str += urlList[indexUrl] +"\n"; 
+  }
+  var now = new Date();
+  var spendTime = now.getTime() - today.getTime();
+  str += spendTime;
+  MailApp.sendEmail(mail, "ios Ranking is Finished!", str);
+//メール送信。最初の1回は認証をする
+ 
+}
+
+function writeDocument(sa, url) {
+     var user = Session.getUser();
+     var mail = user.getEmail();
+
+  result=UrlFetchApp.fetch(url);
+  try{
+  obj=Utilities.jsonParse(result.getContentText());
+    var feedTitle=  obj.feed.title.label;
+    var feedUpdated=obj.feed.updated.label;
+    var entries=obj.feed.entry;
+  
+  sa.insertSheet(feedTitle + " - " + feedUpdated);
+   } catch (e) {
+//     Browser.msgBox(result.getContentText());
+          MailApp.sendEmail(mail, "ios Ranking Error report", e.message + "\n " + url);
+  }
+    
+    var range= sa.getActiveSheet().getRange(1, 1);
+  var no = 1;
+  try{
+    var error_name = "";
+    for( idx in entries ){
+      var entryName = entries[idx]["im:name"].label;
+      error_name = entries[idx]["im:name"].label;
+      var entryCategory = entries[idx].category.attributes.term;
+      var entryCategoryLabel = entries[idx].category.attributes.label;
+    
+      var entryPrice = entries[idx]["im:price"].label;
+      var entryArtist = entries[idx]["im:artist"].label;
+      var entryArtistUrl = entries[idx]["im:artist"].attributes.href;
+      var entryReleaseDate = entries[idx]["im:releaseDate"].label;
+      var entryReleaseDateLabel = entries[idx]["im:releaseDate"].attributes.label;
+
+      var entryContentType = entries[idx]["im:contentType"].attributes.label;
+      var entryTitle = entries[idx].title.label;
+      var entryLink = entries[idx].id.label;
+    
+      range.offset(idx, 0).setValue(no);
+      range.offset(idx, 1).setValue(entryName);
+      range.offset(idx, 2).setValue(entryPrice);
+      range.offset(idx, 3).setValue(entryCategory);
+      range.offset(idx, 4).setValue(entryCategoryLabel);
+      range.offset(idx, 5).setValue(entryArtist);
+      range.offset(idx, 6).setValue(entryArtistUrl);
+      range.offset(idx, 7).setValue(entryReleaseDate);
+      range.offset(idx, 8).setValue(entryReleaseDateLabel);
+      range.offset(idx, 9).setValue(entryContentType);
+      range.offset(idx, 10).setValue(entryTitle);
+      range.offset(idx, 11).setValue(entryLink);
+      no++;
+    }
+  } catch (e) {
+    MailApp.sendEmail(mail, "ios Ranking Error report", e.message + "\n " + error_name);
+  }
+}
